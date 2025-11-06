@@ -51,7 +51,37 @@ variable "patch_schedule" {
 }
 
 variable "subnet_id" {
-  description = "The ID of the Subnet within which the Redis Cache should be deployed. Only available when using the Premium SKU"
+  description = "The ID of the Subnet within which the Redis Cache should be deployed. Only available when using the Premium SKU with VNET Integration"
+  default     = null
+}
+
+variable "enable_private_endpoint" {
+  description = "Enable private endpoint for Redis Cache. Use this for Standard/Basic SKUs or when you want private connectivity without VNET injection"
+  type        = bool
+  default     = false
+}
+
+variable "private_endpoint_subnet_id" {
+  description = "The ID of the Subnet from which Private IP Addresses will be allocated for the Private Endpoint. Required when enable_private_endpoint is true"
+  type        = string
+  default     = null
+}
+
+variable "create_private_dns_zone" {
+  description = "Whether to create a new Private DNS Zone for Redis Cache. Set to false if you want to use an existing zone"
+  type        = bool
+  default     = true
+}
+
+variable "private_dns_zone_ids" {
+  description = "List of existing Private DNS Zone IDs to associate with the private endpoint. Only used when create_private_dns_zone is false. Should be the ID(s) of privatelink.redis.cache.windows.net zone"
+  type        = list(string)
+  default     = []
+}
+
+variable "vnet_id" {
+  description = "The ID of the Virtual Network to link the Private DNS Zone to. Required when create_private_dns_zone is true"
+  type        = string
   default     = null
 }
 

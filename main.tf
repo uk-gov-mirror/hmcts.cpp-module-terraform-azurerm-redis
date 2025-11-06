@@ -38,9 +38,10 @@ resource "azurerm_redis_cache" "main" {
   public_network_access_enabled = each.value["public_network_access_enabled"]
   replicas_per_master           = each.value["sku_name"] == "Premium" ? each.value["replicas_per_master"] : null
   shard_count                   = each.value["sku_name"] == "Premium" ? each.value["shard_count"] : null
-  subnet_id                     = each.value["sku_name"] == "Premium" ? var.subnet_id : null
-  zones                         = each.value["zones"]
-  tags                          = merge({ "Name" = format("%s", each.key) }, var.tags, )
+  # Only use subnet_id for Premium SKU when NOT using private endpoint (VNET Integration)
+  subnet_id = each.value["sku_name"] == "Premium" && !var.enable_private_endpoint ? var.subnet_id : null
+  zones     = each.value["zones"]
+  tags      = merge({ "Name" = format("%s", each.key) }, var.tags, )
 
   redis_configuration {
     #  aof_backup_enabled              = var.enable_aof_backup
@@ -72,4 +73,46 @@ resource "azurerm_redis_cache" "main" {
     ignore_changes = [redis_configuration.0.rdb_storage_connection_string]
   }
 
+}
+
+# Private DNS Zone for Redis Cache Private Endpoint
+resource "azurerm_private_dns_zone" "redis" {
+  count               = var.enable_private_endpoint && var.create_private_dns_zone ? 1 : 0
+  name                = "privatelink.redis.cache.windows.net"
+  resource_group_name = var.resource_group_name
+  tags                = var.tags
+}
+
+# Link Private DNS Zone to Virtual Network
+resource "azurerm_private_dns_zone_virtual_network_link" "redis" {
+  count                 = var.enable_private_endpoint && var.create_private_dns_zone ? 1 : 0
+  name                  = "redis-dns-vnet-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.redis[0].name
+  virtual_network_id    = var.vnet_id
+  tags                  = var.tags
+}
+
+# Private Endpoint for Redis Cache
+resource "azurerm_private_endpoint" "redis" {
+  for_each            = var.enable_private_endpoint ? var.redis_server_settings : {}
+  name                = format("%s-pe", each.key)
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_id
+  tags                = merge({ "Name" = format("%s-pe", each.key) }, var.tags)
+
+  private_service_connection {
+    name                           = format("%s-psc", each.key)
+    private_connection_resource_id = azurerm_redis_cache.main[each.key].id
+    is_manual_connection           = false
+    subresource_names              = ["redisCache"]
+  }
+
+  private_dns_zone_group {
+    name                 = "default"
+    private_dns_zone_ids = var.create_private_dns_zone ? [azurerm_private_dns_zone.redis[0].id] : var.private_dns_zone_ids
+  }
+
+  depends_on = [azurerm_redis_cache.main]
 }
