@@ -29,17 +29,18 @@ resource "azurerm_redis_cache" "main" {
   name                          = format("%s", each.key)
   resource_group_name           = var.resource_group_name
   location                      = var.location
-  capacity                      = each.value["capacity"]
+  capacity                      = each.value.capacity
   family                        = lookup(var.redis_family, each.value.sku_name)
-  sku_name                      = each.value["sku_name"]
+  sku_name                      = each.value.sku_name
   non_ssl_port_enabled          = lookup(each.value, "enable_non_ssl_port", false)
   minimum_tls_version           = lookup(each.value, "minimum_tls_version", "1.2")
   private_static_ip_address     = lookup(each.value, "private_static_ip_address", null)
   public_network_access_enabled = lookup(each.value, "public_network_access_enabled", false)
-  replicas_per_master           = each.value["sku_name"] == "Premium" ? lookup(each.value, "replicas_per_master", null) : null
-  shard_count                   = each.value["sku_name"] == "Premium" ? lookup(each.value, "shard_count", null) : null
-  subnet_id                     = each.value["sku_name"] == "Premium" && !var.enable_private_endpoint ? var.subnet_id : null
+  replicas_per_master           = each.value.sku_name == "Premium" ? lookup(each.value, "replicas_per_master", null) : null
+  shard_count                   = each.value.sku_name == "Premium" ? lookup(each.value, "shard_count", null) : null
+  subnet_id                     = each.value.sku_name == "Premium" && !var.enable_private_endpoint ? var.subnet_id : null
   zones                         = lookup(each.value, "zones", null)
+  tags                          = merge({ "Name" = each.key }, var.tags)
 
   redis_configuration {
     #  aof_backup_enabled              = var.enable_aof_backup
@@ -85,6 +86,13 @@ resource "azurerm_private_dns_zone" "redis" {
   name                = "privatelink.redis.cache.windows.net"
   resource_group_name = var.resource_group_name
   tags                = var.tags
+
+  lifecycle {
+    precondition {
+      condition     = !var.enable_private_endpoint || !var.create_private_dns_zone || var.vnet_id != null
+      error_message = "vnet_id must be provided when both enable_private_endpoint and create_private_dns_zone are true"
+    }
+  }
 }
 
 # Link Private DNS Zone to Virtual Network
@@ -116,6 +124,13 @@ resource "azurerm_private_endpoint" "redis" {
   private_dns_zone_group {
     name                 = "default"
     private_dns_zone_ids = var.create_private_dns_zone ? [azurerm_private_dns_zone.redis[0].id] : var.private_dns_zone_ids
+  }
+
+  lifecycle {
+    precondition {
+      condition     = !var.enable_private_endpoint || var.private_endpoint_subnet_id != null
+      error_message = "private_endpoint_subnet_id must be provided when enable_private_endpoint is true"
+    }
   }
 
   depends_on = [azurerm_redis_cache.main]

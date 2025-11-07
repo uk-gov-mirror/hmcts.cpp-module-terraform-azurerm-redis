@@ -73,11 +73,6 @@ variable "private_endpoint_subnet_id" {
   description = "The ID of the Subnet from which Private IP Addresses will be allocated for the Private Endpoint. Required when enable_private_endpoint is true"
   type        = string
   default     = null
-
-  validation {
-    condition     = var.enable_private_endpoint == false || var.private_endpoint_subnet_id != null
-    error_message = "private_endpoint_subnet_id must be provided when enable_private_endpoint is true"
-  }
 }
 
 variable "create_private_dns_zone" {
@@ -96,15 +91,6 @@ variable "vnet_id" {
   description = "The ID of the Virtual Network to link the Private DNS Zone to. Required when enable_private_endpoint and create_private_dns_zone are true"
   type        = string
   default     = null
-
-  validation {
-    condition = (
-      var.enable_private_endpoint == false ||
-      var.create_private_dns_zone == false ||
-      var.vnet_id != null
-    )
-    error_message = "vnet_id must be provided when both enable_private_endpoint and create_private_dns_zone are true"
-  }
 }
 
 variable "redis_configuration" {
