@@ -32,7 +32,7 @@ resource "azurerm_redis_cache" "main" {
   capacity                      = each.value["capacity"]
   family                        = lookup(var.redis_family, each.value.sku_name)
   sku_name                      = each.value["sku_name"]
-  enable_non_ssl_port           = each.value["enable_non_ssl_port"]
+  non_ssl_port_enabled          = each.value["enable_non_ssl_port"]
   minimum_tls_version           = each.value["minimum_tls_version"]
   private_static_ip_address     = each.value["private_static_ip_address"]
   public_network_access_enabled = each.value["public_network_access_enabled"]
@@ -47,7 +47,7 @@ resource "azurerm_redis_cache" "main" {
     #  aof_backup_enabled              = var.enable_aof_backup
     #  aof_storage_connection_string_0 = var.enable_aof_backup == true ? azurerm_storage_account.storeacc.0.primary_blob_connection_string : null
     #  aof_storage_connection_string_1 = var.enable_aof_backup == true ? azurerm_storage_account.storeacc.0.secondary_blob_connection_string : null
-    enable_authentication           = lookup(var.redis_configuration, "enable_authentication", true)
+    authentication_enabled          = lookup(var.redis_configuration, "enable_authentication", true)
     maxfragmentationmemory_reserved = each.value["sku_name"] == "Premium" || each.value["sku_name"] == "Standard" ? lookup(var.redis_configuration, "maxfragmentationmemory_reserved") : null
     maxmemory_delta                 = each.value["sku_name"] == "Premium" || each.value["sku_name"] == "Standard" ? lookup(var.redis_configuration, "maxmemory_delta") : null
     maxmemory_policy                = lookup(var.redis_configuration, "maxmemory_policy")
