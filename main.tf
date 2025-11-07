@@ -32,27 +32,25 @@ resource "azurerm_redis_cache" "main" {
   capacity                      = each.value["capacity"]
   family                        = lookup(var.redis_family, each.value.sku_name)
   sku_name                      = each.value["sku_name"]
-  non_ssl_port_enabled          = each.value["enable_non_ssl_port"]
-  minimum_tls_version           = each.value["minimum_tls_version"]
-  private_static_ip_address     = each.value["private_static_ip_address"]
-  public_network_access_enabled = each.value["public_network_access_enabled"]
-  replicas_per_master           = each.value["sku_name"] == "Premium" ? each.value["replicas_per_master"] : null
-  shard_count                   = each.value["sku_name"] == "Premium" ? each.value["shard_count"] : null
-  # Only use subnet_id for Premium SKU when NOT using private endpoint (VNET Integration)
-  subnet_id = each.value["sku_name"] == "Premium" && !var.enable_private_endpoint ? var.subnet_id : null
-  zones     = each.value["zones"]
-  tags      = merge({ "Name" = format("%s", each.key) }, var.tags, )
+  non_ssl_port_enabled          = lookup(each.value, "enable_non_ssl_port", false)
+  minimum_tls_version           = lookup(each.value, "minimum_tls_version", "1.2")
+  private_static_ip_address     = lookup(each.value, "private_static_ip_address", null)
+  public_network_access_enabled = lookup(each.value, "public_network_access_enabled", false)
+  replicas_per_master           = each.value["sku_name"] == "Premium" ? lookup(each.value, "replicas_per_master", null) : null
+  shard_count                   = each.value["sku_name"] == "Premium" ? lookup(each.value, "shard_count", null) : null
+  subnet_id                     = each.value["sku_name"] == "Premium" && !var.enable_private_endpoint ? var.subnet_id : null
+  zones                         = lookup(each.value, "zones", null)
 
   redis_configuration {
     #  aof_backup_enabled              = var.enable_aof_backup
     #  aof_storage_connection_string_0 = var.enable_aof_backup == true ? azurerm_storage_account.storeacc.0.primary_blob_connection_string : null
     #  aof_storage_connection_string_1 = var.enable_aof_backup == true ? azurerm_storage_account.storeacc.0.secondary_blob_connection_string : null
     authentication_enabled          = lookup(var.redis_configuration, "enable_authentication", true)
-    maxfragmentationmemory_reserved = each.value["sku_name"] == "Premium" || each.value["sku_name"] == "Standard" ? lookup(var.redis_configuration, "maxfragmentationmemory_reserved") : null
-    maxmemory_delta                 = each.value["sku_name"] == "Premium" || each.value["sku_name"] == "Standard" ? lookup(var.redis_configuration, "maxmemory_delta") : null
-    maxmemory_policy                = lookup(var.redis_configuration, "maxmemory_policy")
-    maxmemory_reserved              = each.value["sku_name"] == "Premium" || each.value["sku_name"] == "Standard" ? lookup(var.redis_configuration, "maxmemory_reserved") : null
-    notify_keyspace_events          = lookup(var.redis_configuration, "notify_keyspace_events")
+    maxfragmentationmemory_reserved = each.value["sku_name"] == "Premium" || each.value["sku_name"] == "Standard" ? lookup(var.redis_configuration, "maxfragmentationmemory_reserved", null) : null
+    maxmemory_delta                 = each.value["sku_name"] == "Premium" || each.value["sku_name"] == "Standard" ? lookup(var.redis_configuration, "maxmemory_delta", null) : null
+    maxmemory_policy                = lookup(var.redis_configuration, "maxmemory_policy", "volatile-lru")
+    maxmemory_reserved              = each.value["sku_name"] == "Premium" || each.value["sku_name"] == "Standard" ? lookup(var.redis_configuration, "maxmemory_reserved", null) : null
+    notify_keyspace_events          = lookup(var.redis_configuration, "notify_keyspace_events", "")
     rdb_backup_enabled              = each.value["sku_name"] == "Premium" && var.enable_data_persistence == true ? true : false
     rdb_backup_frequency            = each.value["sku_name"] == "Premium" && var.enable_data_persistence == true ? var.data_persistence_backup_frequency : null
     rdb_backup_max_snapshot_count   = each.value["sku_name"] == "Premium" && var.enable_data_persistence == true ? var.data_persistence_backup_max_snapshot_count : null
@@ -71,6 +69,12 @@ resource "azurerm_redis_cache" "main" {
   lifecycle {
     # A bug in the Redis API where the original storage connection string isn't being returneds
     ignore_changes = [redis_configuration.0.rdb_storage_connection_string]
+
+    # Validation to prevent Basic/Standard with VNet Integration
+    precondition {
+      condition     = !(each.value["sku_name"] != "Premium" && var.subnet_id != null && !var.enable_private_endpoint)
+      error_message = "Basic/Standard SKUs do not support VNet Integration (subnet_id). Use enable_private_endpoint = true instead."
+    }
   }
 
 }
