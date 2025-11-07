@@ -11,16 +11,16 @@ resource "random_string" "str" {
 
 resource "azurerm_storage_account" "storeacc" {
   #  for_each                  = var.redis_configuration != {} ? { for rdb_backup_enabled, v in var.redis_configuration : rdb_backup_enabled => v if v == true } : null
-  count                     = var.enable_data_persistence ? 1 : 0
-  name                      = var.storage_account_name == null ? "rediscachebkpstore${random_string.str.0.result}" : substr(var.storage_account_name, 0, 24)
-  resource_group_name       = var.resource_group_name
-  location                  = var.location
-  account_kind              = "StorageV2"
-  account_tier              = "Standard"
-  account_replication_type  = "GRS"
-  enable_https_traffic_only = true
-  min_tls_version           = "TLS1_2"
-  tags                      = merge({ "Name" = format("%s", "stsqlauditlogs") }, var.tags, )
+  count                      = var.enable_data_persistence ? 1 : 0
+  name                       = var.storage_account_name == null ? "rediscachebkpstore${random_string.str.0.result}" : substr(var.storage_account_name, 0, 24)
+  resource_group_name        = var.resource_group_name
+  location                   = var.location
+  account_kind               = "StorageV2"
+  account_tier               = "Standard"
+  account_replication_type   = "GRS"
+  https_traffic_only_enabled = true
+  min_tls_version            = "TLS1_2"
+  tags                       = merge({ "Name" = format("%s", "stsqlauditlogs") }, var.tags, )
 }
 
 # Redis Cache Instance configuration
