@@ -1,6 +1,6 @@
 output "redis_cache_instance_id" {
   description = "The Route ID of Redis Cache Instance"
-  value       = element(concat([for n in azurerm_redis_cache.main : n.id], [""]), 0)
+  value       = length(azurerm_redis_cache.main) > 0 ? values(azurerm_redis_cache.main)[0].id : "" # ★ CHANGED: More explicit null handling
 }
 
 output "redis_cache_hostname" {
@@ -15,7 +15,7 @@ output "redis_cache_ssl_port" {
 
 output "redis_cache_port" {
   description = "The non-SSL Port of the Redis Instance"
-  value       = element(concat([for p in azurerm_redis_cache.main : p.port if p == true], [""]), 0)
+  value       = element(concat([for p in azurerm_redis_cache.main : p.port if p.non_ssl_port_enabled], [""]), 0) # ★ CHANGED: Fixed from "if p == true" to "if p.non_ssl_port_enabled"
   sensitive   = true
 }
 
