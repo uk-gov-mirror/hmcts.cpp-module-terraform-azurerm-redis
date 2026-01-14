@@ -73,3 +73,53 @@ resource "azurerm_redis_cache" "main" {
   }
 
 }
+
+# Data source to lookup Virtual Network for Private DNS zone linking
+data "azurerm_virtual_network" "vnet" {
+  count               = var.enable_private_endpoint ? 1 : 0
+  name                = var.virtual_network_name
+  resource_group_name = var.virtual_network_resource_group_name
+}
+
+# Private DNS Zone for Redis (for Basic/Standard with Private Endpoint)
+resource "azurerm_private_dns_zone" "redis" {
+  count               = var.enable_private_endpoint ? 1 : 0
+  name                = "privatelink.redis.cache.windows.net"
+  resource_group_name = var.resource_group_name
+  tags                = merge({ "Name" = "redis-private-dns-zone" }, var.tags)
+}
+
+# Link Private DNS Zone to Virtual Network
+resource "azurerm_private_dns_zone_virtual_network_link" "redis" {
+  count                 = var.enable_private_endpoint ? 1 : 0
+  name                  = "redis-dns-link"
+  resource_group_name   = var.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.redis[0].name
+  virtual_network_id    = data.azurerm_virtual_network.vnet[0].id
+  tags                  = merge({ "Name" = "redis-dns-link" }, var.tags)
+}
+
+# Private Endpoints for each Redis instance (Basic/Standard SKU)
+resource "azurerm_private_endpoint" "redis" {
+  for_each            = var.enable_private_endpoint ? var.redis_server_settings : {}
+  name                = "${each.key}-pe"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_id
+  tags                = merge({ "Name" = "${each.key}-private-endpoint" }, var.tags)
+
+  private_service_connection {
+    name                           = "${each.key}-psc"
+    private_connection_resource_id = azurerm_redis_cache.main[each.key].id
+    is_manual_connection           = false
+    subresource_names              = ["redisCache"]
+  }
+
+  private_dns_zone_group {
+    name                 = "redis-dns-zone-group"
+    private_dns_zone_ids = [azurerm_private_dns_zone.redis[0].id]
+  }
+
+  depends_on = [azurerm_redis_cache.main]
+}
+
