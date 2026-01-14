@@ -122,4 +122,3 @@ resource "azurerm_private_endpoint" "redis" {
 
   depends_on = [azurerm_redis_cache.main]
 }
-

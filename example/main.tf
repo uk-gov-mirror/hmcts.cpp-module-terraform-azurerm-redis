@@ -7,8 +7,6 @@ module "tag_set" {
   version_number = var.version_number
   attribute      = var.attribute
   environment    = var.environment
-  type           = var.type
-}
 
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
@@ -31,7 +29,6 @@ module "redis" {
 
   # Private Endpoint Configuration (for Basic/Standard SKUs)
   enable_private_endpoint             = var.enable_private_endpoint
-  private_endpoint_subnet_id          = var.enable_private_endpoint ? var.private_endpoint_subnet_id : null
   virtual_network_name                = var.enable_private_endpoint ? var.virtual_network_name : null
   virtual_network_resource_group_name = var.enable_private_endpoint ? var.virtual_network_resource_group_name : null
 }
