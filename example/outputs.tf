@@ -11,3 +11,4 @@ output "redis_cache_hostname" {
 output "redis_cache_ssl_port" {
   description = "The SSL Port of the Redis Instance"
   value       = module.redis.redis_cache_ssl_port
+}
