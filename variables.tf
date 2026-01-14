@@ -22,7 +22,7 @@ variable "redis_server_settings" {
     enable_non_ssl_port           = optional(bool)
     minimum_tls_version           = optional(string)
     private_static_ip_address     = optional(string)
-    public_network_access_enabled = optional(string)
+    public_network_access_enabled = optional(bool)
     replicas_per_master           = optional(number)
     shard_count                   = optional(number)
     zones                         = optional(list(string))
@@ -51,7 +51,8 @@ variable "patch_schedule" {
 }
 
 variable "subnet_id" {
-  description = "The ID of the Subnet within which the Redis Cache should be deployed. Only available when using the Premium SKU"
+  description = "The ID of the Subnet for VNET integration. Only used for Premium SKU. Set to null for Basic/Standard SKUs using Private Endpoints."
+  type        = string
   default     = null
 }
 
@@ -74,17 +75,20 @@ variable "storage_account_name" {
 }
 
 variable "enable_data_persistence" {
-  description = "Enable or disbale Redis Database Backup. Only supported on Premium SKU's"
+  description = "Enable or disable Redis Database Backup. Only supported on Premium SKUs"
+  type        = bool
   default     = false
 }
 
 variable "data_persistence_backup_frequency" {
-  description = "The Backup Frequency in Minutes. Only supported on Premium SKU's. Possible values are: `15`, `30`, `60`, `360`, `720` and `1440`"
+  description = "The Backup Frequency in Minutes. Only supported on Premium SKUs. Possible values are: 15, 30, 60, 360, 720 and 1440"
+  type        = number
   default     = 60
 }
 
 variable "data_persistence_backup_max_snapshot_count" {
-  description = "The maximum number of snapshots to create as a backup. Only supported for Premium SKU's"
+  description = "The maximum number of snapshots to create as a backup. Only supported for Premium SKUs"
+  type        = number
   default     = 1
 }
 
@@ -135,4 +139,28 @@ variable "type" {
   type        = string
   description = "Name of service type"
   default     = ""
+}
+
+variable "enable_private_endpoint" {
+  description = "Enable Private Endpoint for Basic/Standard SKU. Premium SKU uses VNET integration via subnet_id instead."
+  type        = bool
+  default     = false
+}
+
+variable "private_endpoint_subnet_id" {
+  description = "The ID of the Subnet for Private Endpoint. Required when enable_private_endpoint is true for Basic/Standard SKUs."
+  type        = string
+  default     = null
+}
+
+variable "virtual_network_name" {
+  description = "The name of the Virtual Network for Private DNS zone linking. Required when enable_private_endpoint is true."
+  type        = string
+  default     = null
+}
+
+variable "virtual_network_resource_group_name" {
+  description = "The resource group name of the Virtual Network. Required when enable_private_endpoint is true."
+  type        = string
+  default     = null
 }
