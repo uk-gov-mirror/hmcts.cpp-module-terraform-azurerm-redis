@@ -25,4 +25,9 @@ module "redis" {
     enable_authentication = lookup(var.redis_configuration, "enable_authentication", true)
   }
 
+  # Enable Private Endpoint for Basic/Standard SKUs
+  enable_private_endpoint    = var.enable_private_endpoint
+  private_endpoint_subnet_id = var.private_endpoint_subnet_id
+  private_dns_zone_ids       = var.private_dns_zone_ids
+
 }

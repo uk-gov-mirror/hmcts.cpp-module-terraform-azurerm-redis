@@ -47,3 +47,13 @@ output "redis_configuration_maxclients" {
   description = "Returns the max number of connected clients at the same time."
   value       = element(concat([for m in azurerm_redis_cache.main : m.redis_configuration.0.maxclients], [""]), 0)
 }
+
+output "private_endpoint_ids" {
+  description = "Map of Private Endpoint IDs for Redis Cache instances (Basic/Standard SKUs only)"
+  value       = { for k, v in azurerm_private_endpoint.redis : k => v.id }
+}
+
+output "private_endpoint_private_ip_addresses" {
+  description = "Map of Private IP addresses assigned to Private Endpoints"
+  value       = { for k, v in azurerm_private_endpoint.redis : k => v.private_service_connection[0].private_ip_address }
+}

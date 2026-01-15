@@ -73,3 +73,28 @@ resource "azurerm_redis_cache" "main" {
   }
 
 }
+
+# Private Endpoint for Basic/Standard SKUs
+resource "azurerm_private_endpoint" "redis" {
+  for_each            = var.enable_private_endpoint ? { for k, v in var.redis_server_settings : k => v if v.sku_name != "Premium" } : {}
+  name                = format("%s-pe", each.key)
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_id
+  tags                = merge({ "Name" = format("%s-pe", each.key) }, var.tags, )
+
+  private_service_connection {
+    name                           = format("%s-psc", each.key)
+    private_connection_resource_id = azurerm_redis_cache.main[each.key].id
+    is_manual_connection           = false
+    subresource_names              = ["redisCache"]
+  }
+
+  dynamic "private_dns_zone_group" {
+    for_each = length(var.private_dns_zone_ids) > 0 ? [1] : []
+    content {
+      name                 = "default"
+      private_dns_zone_ids = var.private_dns_zone_ids
+    }
+  }
+}

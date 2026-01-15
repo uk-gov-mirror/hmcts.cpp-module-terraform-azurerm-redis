@@ -93,3 +93,21 @@ variable "version_number" {
   description = "The version of the application or object being deployed. This could be a build object or other artefact which is appended by a CI/Cd platform as part of a process of standing up an environment"
   default     = ""
 }
+
+variable "enable_private_endpoint" {
+  description = "Enable Private Endpoint for Redis Cache. Recommended for Basic/Standard SKUs."
+  type        = bool
+  default     = false
+}
+
+variable "private_endpoint_subnet_id" {
+  description = "The ID of the Subnet where the Private Endpoint will be created."
+  type        = string
+  default     = null
+}
+
+variable "private_dns_zone_ids" {
+  description = "List of Private DNS Zone IDs for Private Endpoint."
+  type        = list(string)
+  default     = []
+}

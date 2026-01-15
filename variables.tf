@@ -55,6 +55,29 @@ variable "subnet_id" {
   default     = null
 }
 
+variable "enable_private_endpoint" {
+  description = "Enable Private Endpoint for Redis Cache. Recommended for Basic/Standard SKUs. Premium SKU uses VNet injection instead."
+  type        = bool
+  default     = false
+}
+
+variable "private_endpoint_subnet_id" {
+  description = "The ID of the Subnet where the Private Endpoint will be created. Required when enable_private_endpoint is true."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.enable_private_endpoint == false || var.private_endpoint_subnet_id != null
+    error_message = "private_endpoint_subnet_id must be provided when enable_private_endpoint is true."
+  }
+}
+
+variable "private_dns_zone_ids" {
+  description = "List of Private DNS Zone IDs for Private Endpoint. If not provided, manual DNS configuration will be required."
+  type        = list(string)
+  default     = []
+}
+
 variable "redis_configuration" {
   type = object({
     enable_authentication           = optional(bool)
