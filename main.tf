@@ -32,7 +32,7 @@ resource "azurerm_redis_cache" "main" {
   capacity                      = each.value["capacity"]
   family                        = lookup(var.redis_family, each.value.sku_name)
   sku_name                      = each.value["sku_name"]
-  non_ssl_port_enabled          = each.value["non_ssl_port_enabled"]
+  enable_non_ssl_port           = each.value["enable_non_ssl_port"]
   minimum_tls_version           = each.value["minimum_tls_version"]
   private_static_ip_address     = each.value["private_static_ip_address"]
   public_network_access_enabled = each.value["public_network_access_enabled"]

@@ -17,7 +17,7 @@ variable "redis_server_settings" {
   type = map(object({
     capacity                      = number
     sku_name                      = string
-    non_ssl_port_enabled          = optional(bool)
+    enable_non_ssl_port           = optional(bool)
     minimum_tls_version           = optional(string)
     public_network_access_enabled = optional(string)
   }))
