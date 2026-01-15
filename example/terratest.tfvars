@@ -20,3 +20,12 @@ redis_server_settings = {
 redis_configuration = {
   enable_authentication = true
 }
+
+# Premium SKU - Use VNET integration, not Private Endpoints
+enable_private_endpoint = false
+subnet_id               = null
+
+# These are only needed when enable_private_endpoint = true (Basic/Standard SKU)
+private_endpoint_subnet_id          = null
+virtual_network_name                = null
+virtual_network_resource_group_name = null
