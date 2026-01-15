@@ -6,6 +6,17 @@ tags = {
   tier        = "data"
   project     = "paas"
 }
+
+# Tags
+namespace      = "cpp"
+application    = "redis-test"
+costcode       = "test123"
+owner          = "terratest"
+version_number = "1.0.0"
+attribute      = "test"
+environment    = "test"
+type           = "cache"
+
 resource_group_name = "rg-lab-cpp-redisterratest"
 redis_server_settings = {
   test-redis = {
