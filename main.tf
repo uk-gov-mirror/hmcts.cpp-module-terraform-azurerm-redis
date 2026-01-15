@@ -11,16 +11,16 @@ resource "random_string" "str" {
 
 resource "azurerm_storage_account" "storeacc" {
   #  for_each                  = var.redis_configuration != {} ? { for rdb_backup_enabled, v in var.redis_configuration : rdb_backup_enabled => v if v == true } : null
-  count                      = var.enable_data_persistence ? 1 : 0
-  name                       = var.storage_account_name == null ? "rediscachebkpstore${random_string.str.0.result}" : substr(var.storage_account_name, 0, 24)
-  resource_group_name        = var.resource_group_name
-  location                   = var.location
-  account_kind               = "StorageV2"
-  account_tier               = "Standard"
-  account_replication_type   = "GRS"
-  https_traffic_only_enabled = true
-  min_tls_version            = "TLS1_2"
-  tags                       = merge({ "Name" = format("%s", "stsqlauditlogs") }, var.tags, )
+  count                     = var.enable_data_persistence ? 1 : 0
+  name                      = var.storage_account_name == null ? "rediscachebkpstore${random_string.str.0.result}" : substr(var.storage_account_name, 0, 24)
+  resource_group_name       = var.resource_group_name
+  location                  = var.location
+  account_kind              = "StorageV2"
+  account_tier              = "Standard"
+  account_replication_type  = "GRS"
+  enable_https_traffic_only = true
+  min_tls_version           = "TLS1_2"
+  tags                      = merge({ "Name" = format("%s", "stsqlauditlogs") }, var.tags, )
 }
 
 # Redis Cache Instance configuration
@@ -46,6 +46,7 @@ resource "azurerm_redis_cache" "main" {
     #  aof_backup_enabled              = var.enable_aof_backup
     #  aof_storage_connection_string_0 = var.enable_aof_backup == true ? azurerm_storage_account.storeacc.0.primary_blob_connection_string : null
     #  aof_storage_connection_string_1 = var.enable_aof_backup == true ? azurerm_storage_account.storeacc.0.secondary_blob_connection_string : null
+    enable_authentication           = lookup(var.redis_configuration, "enable_authentication", true)
     maxfragmentationmemory_reserved = each.value["sku_name"] == "Premium" || each.value["sku_name"] == "Standard" ? lookup(var.redis_configuration, "maxfragmentationmemory_reserved", null) : null
     maxmemory_delta                 = each.value["sku_name"] == "Premium" || each.value["sku_name"] == "Standard" ? lookup(var.redis_configuration, "maxmemory_delta", null) : null
     maxmemory_policy                = lookup(var.redis_configuration, "maxmemory_policy", "volatile-lru")
