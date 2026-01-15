@@ -97,4 +97,11 @@ resource "azurerm_private_endpoint" "redis" {
       private_dns_zone_ids = var.private_dns_zone_ids
     }
   }
+
+  lifecycle {
+    precondition {
+      condition     = var.private_endpoint_subnet_id != null
+      error_message = "private_endpoint_subnet_id must be provided when enable_private_endpoint is true."
+    }
+  }
 }

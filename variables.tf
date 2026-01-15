@@ -65,11 +65,6 @@ variable "private_endpoint_subnet_id" {
   description = "The ID of the Subnet where the Private Endpoint will be created. Required when enable_private_endpoint is true."
   type        = string
   default     = null
-
-  validation {
-    condition     = var.enable_private_endpoint == false || var.private_endpoint_subnet_id != null
-    error_message = "private_endpoint_subnet_id must be provided when enable_private_endpoint is true."
-  }
 }
 
 variable "private_dns_zone_ids" {
