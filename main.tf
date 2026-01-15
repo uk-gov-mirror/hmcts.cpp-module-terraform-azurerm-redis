@@ -18,7 +18,7 @@ resource "azurerm_storage_account" "storeacc" {
   account_kind              = "StorageV2"
   account_tier              = "Standard"
   account_replication_type  = "GRS"
-  enable_https_traffic_only = true
+  https_traffic_only_enabled = true
   min_tls_version           = "TLS1_2"
   tags                      = merge({ "Name" = format("%s", "stsqlauditlogs") }, var.tags, )
 }
@@ -32,7 +32,7 @@ resource "azurerm_redis_cache" "main" {
   capacity                      = each.value["capacity"]
   family                        = lookup(var.redis_family, each.value.sku_name)
   sku_name                      = each.value["sku_name"]
-  enable_non_ssl_port           = each.value["enable_non_ssl_port"]
+  non_ssl_port_enabled          = each.value["non_ssl_port_enabled"]
   minimum_tls_version           = each.value["minimum_tls_version"]
   private_static_ip_address     = each.value["private_static_ip_address"]
   public_network_access_enabled = each.value["public_network_access_enabled"]
