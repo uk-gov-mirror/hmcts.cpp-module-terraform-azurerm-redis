@@ -19,7 +19,7 @@ variable "redis_server_settings" {
   type = map(object({
     capacity                      = number
     sku_name                      = string
-    enable_non_ssl_port           = optional(bool)
+    non_ssl_port_enabled          = optional(bool)
     minimum_tls_version           = optional(string)
     private_static_ip_address     = optional(string)
     public_network_access_enabled = optional(string)
@@ -57,7 +57,7 @@ variable "subnet_id" {
 
 variable "redis_configuration" {
   type = object({
-    enable_authentication           = optional(bool)
+    authentication_enabled          = optional(bool)
     maxmemory_reserved              = optional(number)
     maxmemory_delta                 = optional(number)
     maxmemory_policy                = optional(string)

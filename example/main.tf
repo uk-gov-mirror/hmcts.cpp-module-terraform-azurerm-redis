@@ -22,7 +22,7 @@ module "redis" {
   location              = var.location
   redis_server_settings = var.redis_server_settings
   redis_configuration = {
-    enable_authentication = lookup(var.redis_configuration, "enable_authentication", true)
+    authentication_enabled = lookup(var.redis_configuration, "authentication_enabled", true)
   }
 
 }
