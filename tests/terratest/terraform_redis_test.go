@@ -1,20 +1,28 @@
 package test
 
 import (
+	"fmt"
 	"testing"
-    "github.com/stretchr/testify/assert"
-	"github.com/gruntwork-io/terratest/modules/terraform"
+	"time"
 
+	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTerraformRedis(t *testing.T) {
 	t.Parallel()
 
+	// Generate unique suffix using timestamp
+	suffix := fmt.Sprintf("%d", time.Now().Unix())
+
 	terraformOptions := &terraform.Options{
 		// The path to where our Terraform code is located
 		TerraformDir: "../../example",
-		VarFiles: []string{"terratest.tfvars"},
-		Upgrade: true,
+		VarFiles:     []string{"terratest.tfvars"},
+		Upgrade:      true,
+		Vars: map[string]interface{}{
+			"name_suffix": suffix,
+		},
 	}
 
 	// Defer the destroy to cleanup all created resources
@@ -28,8 +36,11 @@ func TestTerraformRedis(t *testing.T) {
 	outputs_hostname := terraform.Output(t, terraformOptions, "redis_cache_hostname")
 	outputs_ssl_port := terraform.Output(t, terraformOptions, "redis_cache_ssl_port")
 
-	assert.Equal(t, "/subscriptions/8cdb5405-7535-4349-92e9-f52bddc7833a/resourceGroups/rg-lab-cpp-redisterratest/providers/Microsoft.Cache/redis/test-redis", outputs_instance_id)
-	assert.Equal(t, "test-redis.redis.cache.windows.net", outputs_hostname)
+	expectedInstanceID := fmt.Sprintf("/subscriptions/8cdb5405-7535-4349-92e9-f52bddc7833a/resourceGroups/rg-lab-cpp-redisterratest/providers/Microsoft.Cache/redis/test-redis-%s", suffix)
+	expectedHostname := fmt.Sprintf("test-redis-%s.redis.cache.windows.net", suffix)
+
+	assert.Equal(t, expectedInstanceID, outputs_instance_id)
+	assert.Equal(t, expectedHostname, outputs_hostname)
 	assert.Equal(t, "6380", outputs_ssl_port)
 
 }

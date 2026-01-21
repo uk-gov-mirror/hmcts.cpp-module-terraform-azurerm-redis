@@ -14,15 +14,21 @@ resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
   tags     = module.tag_set.tags
+
+  lifecycle {
+    ignore_changes = [tags]
+  }
 }
 
 module "redis" {
-  source                = "../"
-  resource_group_name   = azurerm_resource_group.rg.name
-  location              = var.location
-  redis_server_settings = var.redis_server_settings
-  redis_configuration = {
-    enable_authentication = lookup(var.redis_configuration, "enable_authentication", true)
+  source              = "../"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+  redis_server_settings = {
+    for key, value in var.redis_server_settings :
+    var.name_suffix != "" ? "${key}-${var.name_suffix}" : key => value
   }
-
+  redis_configuration = {
+    authentication_enabled = lookup(var.redis_configuration, "authentication_enabled", true)
+  }
 }

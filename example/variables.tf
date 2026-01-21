@@ -17,7 +17,7 @@ variable "redis_server_settings" {
   type = map(object({
     capacity                      = number
     sku_name                      = string
-    enable_non_ssl_port           = optional(bool)
+    non_ssl_port_enabled          = optional(bool)
     minimum_tls_version           = optional(string)
     public_network_access_enabled = optional(string)
   }))
@@ -37,7 +37,7 @@ variable "redis_family" {
 
 variable "redis_configuration" {
   type = object({
-    enable_authentication = optional(bool)
+    authentication_enabled = optional(bool)
 
   })
   description = "Configuration for the Redis instance"
@@ -92,4 +92,10 @@ variable "version_number" {
   type        = string
   description = "The version of the application or object being deployed. This could be a build object or other artefact which is appended by a CI/Cd platform as part of a process of standing up an environment"
   default     = ""
+}
+
+variable "name_suffix" {
+  type        = string
+  default     = ""
+  description = "Optional suffix to append to Redis cache name for uniqueness in tests"
 }

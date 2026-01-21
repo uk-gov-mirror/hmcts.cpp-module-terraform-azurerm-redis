@@ -13,10 +13,10 @@ redis_server_settings = {
     capacity                      = 1
     public_network_access_enabled = false
     minimum_tls_version           = 1.2
-    enable_non_ssl_port           = false
+    non_ssl_port_enabled          = false
   }
 }
 
 redis_configuration = {
-  enable_authentication = true
+  authentication_enabled = true
 }
