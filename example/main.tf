@@ -16,6 +16,13 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
+locals {
+  redis_server_settings = {
+    for key, value in var.redis_server_settings :
+    "${key}-${random_string.suffix.result}" => value
+  }
+}
+
 resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
@@ -23,15 +30,11 @@ resource "azurerm_resource_group" "rg" {
 }
 
 module "redis" {
-  source              = "../"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = var.location
-  redis_server_settings = {
-    for key, value in var.redis_server_settings :
-    "${key}-${random_string.suffix.result}" => value
-  }
+  source                = "../"
+  resource_group_name   = azurerm_resource_group.rg.name
+  location              = var.location
+  redis_server_settings = local.redis_server_settings
   redis_configuration = {
     authentication_enabled = lookup(var.redis_configuration, "authentication_enabled", true)
   }
-
 }
