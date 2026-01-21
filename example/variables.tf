@@ -93,3 +93,9 @@ variable "version_number" {
   description = "The version of the application or object being deployed. This could be a build object or other artefact which is appended by a CI/Cd platform as part of a process of standing up an environment"
   default     = ""
 }
+
+variable "name_suffix" {
+  type        = string
+  default     = ""
+  description = "Optional suffix to append to Redis cache name for uniqueness in tests"
+}
